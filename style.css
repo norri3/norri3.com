@@ -1,0 +1,17 @@
+body {
+  font-family: system-ui, sans-serif;
+  text-align: center;
+  padding: 100px;
+  background: #0f0f0f;
+  color: #fff;
+}
+h1 { font-size: 3rem; }
+button {
+  padding: 15px 30px;
+  font-size: 1.2rem;
+  background: #00ff88;
+  color: black;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+}
