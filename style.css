@@ -45,6 +45,10 @@ header {
   cursor: pointer;
   padding: 10px;
   line-height: 1;
+  position: absolute;
+  left: 20pxl
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 /* Hexagon Logo */
