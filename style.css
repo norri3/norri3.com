@@ -48,7 +48,7 @@ header {
   padding: 10px;
   line-height: 1;
   position: absolute;
-  left: -500px;                
+  left: -400px;                
   top: 50%;
   transform: translateY(-50%);
 }
