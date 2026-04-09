@@ -30,13 +30,14 @@ header {
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 30px;
+  padding: 0 30px;           /* right padding stays for balance */
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;   /* keeps logo perfectly centered */
+  position: relative;        /* allows absolute positioning of hamburger */
 }
 
-/* Hamburger */
+/* Hamburger — moved ALL the way to the left */
 .hamburger {
   background: none;
   border: none;
@@ -46,16 +47,15 @@ header {
   padding: 10px;
   line-height: 1;
   position: absolute;
-  left: 20pxl
+  left: 20px;                /* ← change this number if you want it even closer */
   top: 50%;
-  transform: translateX(-50%);
+  transform: translateY(-50%);
 }
 
-/* Hexagon Logo */
+/* Hexagon Logo (stays perfectly centered) */
 .logo {
   display: flex;
   justify-content: center;
-  flex: 1;
 }
 
 .hex {
