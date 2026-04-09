@@ -1,17 +1,102 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
   font-family: system-ui, sans-serif;
-  text-align: center;
-  padding: 100px;
   background: #0f0f0f;
   color: #fff;
+  min-height: 100vh;
+  padding-top: 80px; /* space for fixed header */
 }
-h1 { font-size: 3rem; }
+
+/* HEADER */
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: #000;
+  border-bottom: 1px solid #222;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+}
+
+.nav-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Hamburger */
+.hamburger {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #fff;
+  cursor: pointer;
+  padding: 10px;
+  line-height: 1;
+}
+
+/* Hexagon Logo */
+.logo {
+  display: flex;
+  justify-content: center;
+  flex: 1;
+}
+
+.hex {
+  width: 68px;
+  height: 68px;
+  background: #fff;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 900;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+}
+
+/* Main content */
+main {
+  text-align: center;
+  padding: 80px 20px 100px;
+}
+
+h1 {
+  font-size: 3.5rem;
+  margin-bottom: 20px;
+}
+
+p {
+  font-size: 1.4rem;
+  margin-bottom: 40px;
+  opacity: 0.9;
+}
+
 button {
-  padding: 15px 30px;
-  font-size: 1.2rem;
+  padding: 18px 40px;
+  font-size: 1.3rem;
   background: #00ff88;
-  color: black;
+  color: #000;
   border: none;
   border-radius: 50px;
   cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #00cc6e;
+  transform: scale(1.05);
 }
