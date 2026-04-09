@@ -37,7 +37,8 @@ header {
   position: relative;        /* allows absolute positioning of hamburger */
 }
 
-/* Hamburger — moved ALL the way to the left */
+
+/* Hamburger — moved ALL the way to the left, hopefully */
 .hamburger {
   background: none;
   border: none;
@@ -47,9 +48,10 @@ header {
   padding: 10px;
   line-height: 1;
   position: absolute;
-  left: 20px;                /* ← change this number if you want it even closer */
+  left: 12px;                
   top: 50%;
   transform: translateY(-50%);
+}
 }
 
 /* Hexagon Logo (stays perfectly centered) */
