@@ -1,13 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0f0f0f;
-  --foreground: #ffffff;
+  /* Tactical-dark palette: near-black canvas, single neon-green accent */
+  --background: #08090a;
+  --foreground: #e9ece9;
   --primary: #00ff88;
-  --primary-foreground: #000000;
-  --muted: #222222;
-  --muted-foreground: #999999;
-  --border: #222222;
+  --primary-foreground: #03140c;
+  --muted: #101316;
+  --muted-foreground: #898f88;
+  --border: rgba(255, 255, 255, 0.08);
+  --font-display: "Chakra Petch";
+  --font-body: "Manrope";
 }
 
 * {
@@ -16,8 +19,76 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
   color: var(--foreground);
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-body), system-ui, sans-serif;
+  background-color: var(--background);
+  /* Layered radial glows for depth behind the hero */
+  background-image:
+    radial-gradient(55rem 38rem at 50% -8%, rgba(0, 255, 136, 0.1), transparent 60%),
+    radial-gradient(40rem 30rem at 100% 0%, rgba(0, 255, 136, 0.05), transparent 55%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+/* Subtle grid texture, faded out toward the bottom */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(circle at 50% 0%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(circle at 50% 0%, #000 0%, transparent 72%);
+}
+
+.font-display {
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+
+.font-body {
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Staggered entrance animation */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.fade-up {
+  opacity: 0;
+  animation: fade-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .fade-up {
+    opacity: 1;
+    animation: none;
+  }
+  .animate-ping {
+    animation: none;
+  }
 }
