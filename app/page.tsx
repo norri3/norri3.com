@@ -1,5 +1,6 @@
 import { Header } from "@/components/header";
 import { ConfettiButton } from "@/components/confetti-button";
+import { ForceWipeCountdown } from "@/components/force-wipe-countdown";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
           This site is now powered by Next.js!
         </p>
         <ConfettiButton />
+        <ForceWipeCountdown />
       </main>
     </>
   );
