@@ -126,8 +126,12 @@ function Unit({ value, label }: { value: string; label: string }) {
   return (
     <div className="flex flex-col items-center">
       <div
-        className="w-20 h-20 md:w-28 md:h-28 bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center text-4xl md:text-6xl font-black tabular-nums text-[var(--primary)]"
-        style={{ clipPath: HEXAGON }}
+        className="font-display w-20 h-20 md:w-28 md:h-28 flex items-center justify-center text-4xl md:text-6xl font-bold tabular-nums text-[var(--primary)]"
+        style={{
+          clipPath: HEXAGON,
+          background: "linear-gradient(150deg, #15191d, #0c0f12)",
+          filter: "drop-shadow(0 0 16px rgba(0,255,136,0.18))",
+        }}
       >
         {value}
       </div>
@@ -206,7 +210,7 @@ export function ForceWipeCountdown() {
 
       {inWindow ? (
         <>
-          <h2 className="text-3xl md:text-5xl font-black mb-4 text-[var(--primary)]">
+          <h2 className="font-display text-3xl md:text-5xl font-bold mb-4 text-[var(--primary)]">
             <span className="inline-flex items-center gap-3">
               <span
                 className="inline-block w-3 h-3 bg-[var(--primary)] rounded-full animate-ping"
@@ -234,7 +238,7 @@ export function ForceWipeCountdown() {
         </>
       ) : (
         <>
-          <h2 className="text-2xl md:text-3xl font-bold mb-8">
+          <h2 className="font-display text-2xl md:text-3xl font-bold mb-8">
             Naked on the beach in&hellip;
           </h2>
 
