@@ -4,23 +4,60 @@ import { useEffect, useState } from "react";
 import { CalendarPlus } from "lucide-react";
 
 /**
- * Rust force wipes land on the FIRST THURSDAY of every month at 19:00 UTC,
- * alongside Facepunch's monthly update. (The patch rollout can drift between
- * roughly 18:00-21:00 UTC depending on patch size, but 19:00 UTC is the
- * standard reference time.) Everything is computed in UTC so it's correct for
- * every visitor regardless of timezone, and it never needs manual updating.
+ * Rust force wipes land on the FIRST THURSDAY of every month at 19:00 UK time
+ * (Europe/London), alongside Facepunch's monthly update. The studio is UK-based
+ * and ships at a consistent local hour, so the UTC time shifts with British
+ * daylight saving: 18:00 UTC during BST (summer), 19:00 UTC in winter (GMT).
+ * We resolve London's offset at runtime, so it stays correct across the DST
+ * change and for every visitor, and never needs manual updating. (The actual
+ * patch rollout can still drift an hour or two depending on patch size.)
  */
 
 // How long after the wipe time we keep showing the "WIPED" state before
 // rolling the countdown over to next month (rollouts typically take 1-3 hrs).
 const WIPE_WINDOW_MS = 3 * 60 * 60 * 1000;
 
-function firstThursdayAt19(year: number, month: number): Date {
-  // month is 0-indexed. Day 1 of the month at 19:00 UTC.
-  const first = new Date(Date.UTC(year, month, 1, 19, 0, 0));
-  // 4 = Thursday. Days to add to reach the first Thursday.
+// A time zone's offset from UTC (in ms) at a given instant. Positive = ahead
+// of UTC (e.g. London in summer is +3,600,000). Uses the Intl API so DST is
+// handled automatically with no hardcoded rules.
+function tzOffsetMs(timeZone: string, date: Date): number {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  const parts: Record<string, string> = {};
+  for (const p of dtf.formatToParts(date)) {
+    if (p.type !== "literal") parts[p.type] = p.value;
+  }
+  const hour = parts.hour === "24" ? 0 : Number(parts.hour);
+  const asUTC = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    hour,
+    Number(parts.minute),
+    Number(parts.second),
+  );
+  return asUTC - date.getTime();
+}
+
+function getWipeDate(year: number, month: number): Date {
+  // First Thursday of the month (month is 0-indexed). 4 = Thursday.
+  const first = new Date(Date.UTC(year, month, 1));
   const offset = (4 - first.getUTCDay() + 7) % 7;
-  return new Date(Date.UTC(year, month, 1 + offset, 19, 0, 0));
+  const day = 1 + offset;
+  // 19:00 wall-clock time in London, converted to the correct UTC instant.
+  // The first Thursday is never near a Sunday DST switch, so resolving the
+  // offset from this guess is exact.
+  const guessUTC = Date.UTC(year, month, day, 19, 0, 0);
+  const londonOffset = tzOffsetMs("Europe/London", new Date(guessUTC));
+  return new Date(guessUTC - londonOffset);
 }
 
 function addMonth(year: number, month: number): [number, number] {
@@ -35,12 +72,12 @@ type WipeInfo = {
 function getWipeInfo(now: Date): WipeInfo {
   const year = now.getUTCFullYear();
   const month = now.getUTCMonth();
-  const thisMonth = firstThursdayAt19(year, month);
+  const thisMonth = getWipeDate(year, month);
 
   if (now.getTime() >= thisMonth.getTime()) {
     const inWindow = now.getTime() - thisMonth.getTime() < WIPE_WINDOW_MS;
     const [ny, nm] = addMonth(year, month);
-    return { upcoming: inWindow ? thisMonth : firstThursdayAt19(ny, nm), inWindow };
+    return { upcoming: inWindow ? thisMonth : getWipeDate(ny, nm), inWindow };
   }
 
   return { upcoming: thisMonth, inWindow: false };
@@ -51,7 +88,7 @@ function getUpcomingWipes(from: Date, count: number): Date[] {
   let month = from.getUTCMonth();
   const wipes: Date[] = [];
   for (let i = 0; i < count; i++) {
-    wipes.push(firstThursdayAt19(year, month));
+    wipes.push(getWipeDate(year, month));
     [year, month] = addMonth(year, month);
   }
   return wipes;
@@ -332,7 +369,7 @@ export function ForceWipeCountdown() {
       </div>
 
       <p className="mt-6 text-xs text-[var(--muted-foreground)] opacity-70">
-        First Thursday of every month &middot; 19:00 UTC
+        First Thursday of every month &middot; 7:00 PM UK time
       </p>
     </section>
   );
