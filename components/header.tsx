@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu } from "lucide-react";
+import { LanguageToggle } from "@/components/language-context";
 
 const HEXAGON = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
 
@@ -35,6 +36,11 @@ export function Header() {
             norri3<span className="text-[var(--muted-foreground)]">.com</span>
           </span>
         </a>
+
+        {/* Language toggle */}
+        <div className="absolute right-4 md:right-8">
+          <LanguageToggle />
+        </div>
       </div>
     </header>
   );
