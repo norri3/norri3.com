@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CalendarPlus } from "lucide-react";
+import { useLang } from "@/components/language-context";
 
 /**
  * Rust force wipes land on the FIRST THURSDAY of every month at 19:00 UK time
@@ -53,8 +54,6 @@ function getWipeDate(year: number, month: number): Date {
   const offset = (4 - first.getUTCDay() + 7) % 7;
   const day = 1 + offset;
   // 19:00 wall-clock time in London, converted to the correct UTC instant.
-  // The first Thursday is never near a Sunday DST switch, so resolving the
-  // offset from this guess is exact.
   const guessUTC = Date.UTC(year, month, day, 19, 0, 0);
   const londonOffset = tzOffsetMs("Europe/London", new Date(guessUTC));
   return new Date(guessUTC - londonOffset);
@@ -113,9 +112,7 @@ function getTimeLeft(target: Date, now: Date): TimeLeft {
 
 const pad = (n: number) => n.toString().padStart(2, "0");
 
-const HEXAGON = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
-
-// Format a Date as an iCalendar UTC timestamp: 20260604T190000Z
+// Format a Date as an iCalendar UTC timestamp: 20260604T180000Z
 function toICSDate(d: Date): string {
   return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 }
@@ -136,7 +133,7 @@ function downloadWipeReminder(wipe: Date): void {
     `DTSTART:${dtStart}`,
     `DTEND:${dtEnd}`,
     "SUMMARY:Rust Force Wipe",
-    "DESCRIPTION:Monthly Rust force wipe \\u2014 new map + blueprint reset.",
+    "DESCRIPTION:Monthly Rust force wipe - new map and blueprint reset.",
     "BEGIN:VALARM",
     "TRIGGER:-PT30M",
     "ACTION:DISPLAY",
@@ -159,20 +156,17 @@ function downloadWipeReminder(wipe: Date): void {
 
 type LatestUpdate = { title: string; url: string };
 
-function Unit({ value, label }: { value: string; label: string }) {
+// One big countdown number with its label.
+function Block({ value, label }: { value: string; label: string }) {
   return (
     <div className="flex flex-col items-center">
-      <div
-        className="font-display w-20 h-20 md:w-28 md:h-28 flex items-center justify-center text-4xl md:text-6xl font-bold tabular-nums text-[var(--primary)]"
-        style={{
-          clipPath: HEXAGON,
-          background: "linear-gradient(150deg, #15191d, #0c0f12)",
-          filter: "drop-shadow(0 0 16px rgba(0,255,136,0.18))",
-        }}
+      <span
+        className="font-display tabular-nums font-bold leading-none text-4xl sm:text-6xl md:text-7xl text-[var(--primary)]"
+        style={{ textShadow: "0 0 26px rgba(0,255,136,0.45)" }}
       >
         {value}
-      </div>
-      <span className="mt-3 text-xs md:text-sm uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
+      </span>
+      <span className="mt-2 text-[10px] md:text-xs uppercase tracking-[0.25em] text-[var(--muted-foreground)]">
         {label}
       </span>
     </div>
@@ -180,6 +174,8 @@ function Unit({ value, label }: { value: string; label: string }) {
 }
 
 export function ForceWipeCountdown() {
+  const { t, locale } = useLang();
+
   // Render nothing time-specific until mounted, to avoid SSR/client mismatch.
   const [mounted, setMounted] = useState(false);
   const [info, setInfo] = useState<WipeInfo | null>(null);
@@ -227,7 +223,7 @@ export function ForceWipeCountdown() {
 
   const localTarget =
     mounted && info
-      ? info.upcoming.toLocaleString(undefined, {
+      ? info.upcoming.toLocaleString(locale, {
           weekday: "long",
           month: "short",
           day: "numeric",
@@ -240,117 +236,138 @@ export function ForceWipeCountdown() {
   const upcoming = mounted && info ? getUpcomingWipes(info.upcoming, 5) : null;
 
   return (
-    <section className="max-w-2xl mx-auto px-5 py-12 text-center">
-      <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted-foreground)] mb-2">
-        Next Rust Force Wipe
-      </p>
+    <section className="max-w-3xl mx-auto px-4">
+      {/* Countdown card */}
+      <div
+        className="relative overflow-hidden rounded-2xl border border-[var(--border)] px-5 py-10 md:px-10 md:py-12 text-center"
+        style={{ background: "linear-gradient(to bottom, #0e1114, #0a0c0e)" }}
+      >
+        {/* Top accent line + soft glow */}
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-px"
+          style={{
+            background:
+              "linear-gradient(to right, transparent, var(--primary), transparent)",
+            opacity: 0.6,
+          }}
+        />
+        <div
+          className="pointer-events-none absolute left-1/2 -top-24 h-48 w-72 -translate-x-1/2 rounded-full blur-3xl"
+          style={{ background: "rgba(0,255,136,0.10)" }}
+        />
 
-      {inWindow ? (
-        <>
-          <h2 className="font-display text-3xl md:text-5xl font-bold mb-4 text-[var(--primary)]">
-            <span className="inline-flex items-center gap-3">
-              <span
-                className="inline-block w-3 h-3 bg-[var(--primary)] rounded-full animate-ping"
-                aria-hidden
-              />
-              WIPED
-            </span>
-          </h2>
-          <p className="text-base md:text-lg text-[var(--foreground)]">
-            Servers are updating &mdash; fresh map incoming. Refresh in a bit.
-          </p>
-          {update && (
-            <p className="mt-3 text-sm text-[var(--muted-foreground)]">
-              Latest update:{" "}
-              <a
-                href={update.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[var(--primary)] font-semibold hover:underline"
-              >
-                {update.title}
-              </a>
+        <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-[var(--muted-foreground)] mb-8">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] animate-pulse" />
+          {t.nextWipe}
+        </p>
+
+        {inWindow ? (
+          <div className="py-2">
+            <h2
+              className="font-display text-4xl md:text-6xl font-bold text-[var(--primary)] mb-3"
+              style={{ textShadow: "0 0 30px rgba(0,255,136,0.5)" }}
+            >
+              {t.wiped}
+            </h2>
+            <p className="text-base md:text-lg text-[var(--foreground)]">
+              {t.updating}
             </p>
-          )}
-        </>
-      ) : (
-        <>
-          <h2 className="font-display text-2xl md:text-3xl font-bold mb-8">
-            Naked on the beach in&hellip;
-          </h2>
-
-          <div className="flex items-start justify-center gap-3 md:gap-5">
-            <Unit value={left ? pad(left.days) : "--"} label="Days" />
-            <Unit value={left ? pad(left.hours) : "--"} label="Hours" />
-            <Unit value={left ? pad(left.minutes) : "--"} label="Mins" />
-            <Unit value={left ? pad(left.seconds) : "--"} label="Secs" />
-          </div>
-
-          <p className="mt-8 text-sm text-[var(--muted-foreground)]">
-            {localTarget ? (
-              <>
-                Wipe hits{" "}
-                <span className="text-[var(--foreground)] font-semibold">
-                  {localTarget}
-                </span>{" "}
-                (your local time)
-              </>
-            ) : (
-              <>&nbsp;</>
+            {update && (
+              <p className="mt-3 text-sm text-[var(--muted-foreground)]">
+                {t.latestUpdate}{" "}
+                <a
+                  href={update.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[var(--primary)] font-semibold hover:underline"
+                >
+                  {update.title}
+                </a>
+              </p>
             )}
-          </p>
-        </>
-      )}
+          </div>
+        ) : (
+          <>
+            <div className="flex items-start justify-center gap-4 sm:gap-7 md:gap-10">
+              <Block value={left ? pad(left.days) : "--"} label={t.days} />
+              <Block value={left ? pad(left.hours) : "--"} label={t.hrs} />
+              <Block value={left ? pad(left.minutes) : "--"} label={t.min} />
+              <Block value={left ? pad(left.seconds) : "--"} label={t.sec} />
+            </div>
+
+            <p className="mt-9 text-sm text-[var(--muted-foreground)]">
+              {localTarget ? (
+                <>
+                  {t.wipeHits}{" "}
+                  <span className="text-[var(--foreground)] font-semibold">
+                    {localTarget}
+                  </span>
+                </>
+              ) : (
+                <>&nbsp;</>
+              )}
+            </p>
+          </>
+        )}
+      </div>
 
       {/* Upcoming wipes — tap the calendar icon to download a reminder (.ics) */}
-      <div className="mt-10 text-left">
-        <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted-foreground)] mb-3 text-center">
-          Upcoming Wipes
+      <div className="mt-9">
+        <p className="text-[11px] uppercase tracking-[0.3em] text-[var(--muted-foreground)] mb-3 text-center">
+          {t.upcomingWipes}
         </p>
-        <ul className="max-w-sm mx-auto divide-y divide-[var(--border)] border border-[var(--border)] rounded-lg overflow-hidden">
+        <ul className="rounded-2xl border border-[var(--border)] overflow-hidden divide-y divide-[var(--border)]">
           {upcoming ? (
             upcoming.map((d, i) => {
               const isNext = i === 0 && !inWindow;
               return (
                 <li
                   key={d.toISOString()}
-                  className="flex items-center justify-between px-4 py-3 text-sm"
+                  className="flex items-center justify-between gap-4 px-4 sm:px-5 py-3.5"
+                  style={
+                    isNext ? { background: "rgba(0,255,136,0.05)" } : undefined
+                  }
                 >
-                  <span
-                    className={
-                      isNext
-                        ? "font-semibold text-[var(--primary)]"
-                        : "text-[var(--foreground)]"
-                    }
-                  >
-                    {d.toLocaleDateString(undefined, {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
-                  <span className="flex items-center gap-3">
-                    <span className="tabular-nums text-[var(--muted-foreground)]">
-                      {d.toLocaleTimeString(undefined, {
+                  {/* Left: optional NEXT badge + date */}
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    {isNext && (
+                      <span className="shrink-0 text-[9px] font-bold uppercase tracking-widest text-[var(--primary-foreground)] bg-[var(--primary)] rounded px-1.5 py-0.5">
+                        {t.next}
+                      </span>
+                    )}
+                    <span
+                      className={`font-display font-semibold ${
+                        isNext
+                          ? "text-[var(--primary)]"
+                          : "text-[var(--foreground)]"
+                      }`}
+                    >
+                      {d.toLocaleDateString(locale, {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </div>
+
+                  {/* Right: time + calendar button, clearly separated */}
+                  <div className="flex items-center gap-4 shrink-0">
+                    <span className="tabular-nums text-sm text-[var(--muted-foreground)]">
+                      {d.toLocaleTimeString(locale, {
                         hour: "numeric",
                         minute: "2-digit",
                       })}
                     </span>
-                    {isNext && (
-                      <span className="text-[var(--primary)] uppercase text-[10px] tracking-widest">
-                        next
-                      </span>
-                    )}
                     <button
                       type="button"
                       onClick={() => downloadWipeReminder(d)}
-                      aria-label={`Add ${d.toLocaleDateString()} wipe to calendar`}
-                      title="Add to calendar"
-                      className="text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors"
+                      aria-label={t.addToCalendar}
+                      title={t.addToCalendar}
+                      className="flex items-center justify-center w-8 h-8 rounded-md border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:border-[var(--primary)] transition-colors"
                     >
                       <CalendarPlus className="w-4 h-4" />
                     </button>
-                  </span>
+                  </div>
                 </li>
               );
             })
@@ -358,7 +375,7 @@ export function ForceWipeCountdown() {
             Array.from({ length: 5 }).map((_, i) => (
               <li
                 key={i}
-                className="flex items-center justify-between px-4 py-3 text-sm text-[var(--muted-foreground)]"
+                className="flex items-center justify-between px-5 py-3.5 text-sm text-[var(--muted-foreground)]"
               >
                 <span>&mdash;</span>
                 <span>&mdash;</span>
@@ -368,8 +385,8 @@ export function ForceWipeCountdown() {
         </ul>
       </div>
 
-      <p className="mt-6 text-xs text-[var(--muted-foreground)] opacity-70">
-        First Thursday of every month &middot; 7:00 PM UK time
+      <p className="mt-6 text-xs text-center text-[var(--muted-foreground)] opacity-70">
+        {t.schedule}
       </p>
     </section>
   );
