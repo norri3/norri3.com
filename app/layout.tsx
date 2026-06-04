@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { LanguageProvider } from "@/components/language-context";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -26,7 +27,9 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen antialiased font-body">{children}</body>
+      <body className="min-h-screen antialiased font-body">
+        <LanguageProvider>{children}</LanguageProvider>
+      </body>
     </html>
   );
 }
